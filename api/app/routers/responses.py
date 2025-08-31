@@ -1,34 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from ..deps import get_db
-from .. import models, schemas
+# app/routers/responses.py
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Path, Body
+from pydantic import BaseModel, model_validator
+from ..routers.auth import get_current_user
 
-router = APIRouter(prefix="/surveys", tags=["responses"])
+router = APIRouter(tags=["responses"])
 
-@router.get("/{sid}/questions")
-def get_questions(sid: int, db: Session = Depends(get_db)):
-    qs = db.query(models.Question).filter(models.Question.survey_id == sid).all()
-    if not qs:
-        exists = db.query(models.Survey).filter(models.Survey.id == sid).first()
-        if not exists:
-            raise HTTPException(404, "Survey not found")
-    return [{"id": q.id, "qtype": q.qtype, "text": q.text} for q in qs]
+class AnswerIn(BaseModel):
+    question_id: int
+    value_text: Optional[str] = None
+    value_numeric: Optional[int] = None
 
-@router.post("/{sid}/responses")
-def submit_response(sid: int, payload: list[schemas.AnswerIn], db: Session = Depends(get_db)):
-    # Phase 2: still using a dummy user
-    if not db.query(models.Survey).filter(models.Survey.id == sid).first():
-        raise HTTPException(404, "Survey not found")
+    @model_validator(mode="after")
+    def check_values(self):
+        if self.value_text is None and self.value_numeric is None:
+            raise ValueError("Either value_text or value_numeric must be provided")
+        return self
 
-    r = models.Response(survey_id=sid, user_id=1)
-    db.add(r)
-    db.flush()
-    for a in payload:
-        db.add(models.Answer(
-            response_id=r.id,
-            question_id=a.question_id,
-            value_text=a.value_text,
-            value_numeric=a.value_numeric
-        ))
-    db.commit()
-    return {"ok": True, "response_id": r.id}
+
+# 👇 keep this at the bottom of responses.py
+@router.post("/surveys/{sid}/responses", status_code=201)
+def submit_response(
+    sid: int,
+    items: List[AnswerIn],
+    current_user = Depends(get_current_user),
+):
+    return {
+        "survey_id": sid,
+        "user": getattr(current_user, "email", "anon"),
+        "answers": [it.dict() for it in items]
+    }
