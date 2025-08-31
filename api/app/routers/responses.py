@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..db import get_db
+from ..deps import get_db
 from .. import models, schemas
 
 router = APIRouter(prefix="/surveys", tags=["responses"])
@@ -16,12 +16,13 @@ def get_questions(sid: int, db: Session = Depends(get_db)):
 
 @router.post("/{sid}/responses")
 def submit_response(sid: int, payload: list[schemas.AnswerIn], db: Session = Depends(get_db)):
-    # (Phase 2: no real auth yet) use dummy user_id=1
+    # Phase 2: still using a dummy user
     if not db.query(models.Survey).filter(models.Survey.id == sid).first():
         raise HTTPException(404, "Survey not found")
 
     r = models.Response(survey_id=sid, user_id=1)
-    db.add(r); db.flush()
+    db.add(r)
+    db.flush()
     for a in payload:
         db.add(models.Answer(
             response_id=r.id,
