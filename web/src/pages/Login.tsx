@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth } from "../lib/auth";
-import type { Role } from "../lib/auth";   // ⬅️ type-only import
+import type { Role } from "../lib/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,24 +13,24 @@ export default function Login() {
   }
 
   return (
-    <div style={{ display:"grid", placeItems:"center", height:"100vh" }}>
+    <div style={{ display: "grid", placeItems: "center", height: "100vh" }}>
       <form onSubmit={onSubmit} style={{ width: 340 }}>
         <h2>Welcome Back</h2>
         <input
           placeholder="you@company.com"
           value={email}
-          onChange={(e)=>setEmail(e.target.value)}
-          style={{ width:"100%", padding:8, margin:"8px 0" }}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{ width: "100%", padding: 8, margin: "8px 0" }}
         />
         <select
           value={role}
-          onChange={(e)=>setRole(e.target.value as Role)}   // keep the cast
-          style={{ width:"100%", padding:8, margin:"8px 0" }}
+          onChange={(e) => setRole(e.target.value as Role)}
+          style={{ width: "100%", padding: 8, margin: "8px 0" }}
         >
           <option value="employee">Employee</option>
           <option value="admin">Admin (HR/Exec)</option>
         </select>
-        <button style={{ width:"100%", padding:10 }}>Login</button>
+        <button style={{ width: "100%", padding: 10 }}>Login</button>
       </form>
     </div>
   );

@@ -1,8 +1,8 @@
 export default function Analytics() {
   return (
-    <div style={{ padding:24 }}>
+    <div>
       <h2>Organization Analytics</h2>
-      <p>Power BI embed placeholder</p>
+      <p>Power BI embed placeholder.</p>
     </div>
   );
 }

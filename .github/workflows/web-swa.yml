@@ -1,0 +1,29 @@
+name: Deploy Web to Azure Static Web Apps
+on:
+  push:
+    branches: [ main ]
+    paths: ['web/**','.github/workflows/web-swa.yml']
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Build
+        working-directory: web
+        env:
+          VITE_API_URL: ${{ secrets.PROD_API_URL }}   # we’ll set this secret
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: "web"
+          output_location: "web/dist"
